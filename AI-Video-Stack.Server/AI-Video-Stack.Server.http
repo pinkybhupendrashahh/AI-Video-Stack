@@ -1,0 +1,6 @@
+@AI_Video_Stack.Server_HostAddress = http://localhost:5291
+
+GET {{AI_Video_Stack.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

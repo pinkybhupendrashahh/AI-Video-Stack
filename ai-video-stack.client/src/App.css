@@ -1,0 +1,102 @@
+/* Variables */
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #50e3c2;
+    --danger-color: #e94e77;
+    --background-color: #f9f9f9;
+    --text-color: #333;
+    --font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    --border-radius: 6px;
+    --spacing: 12px;
+}
+
+/* Layout */
+body {
+    margin: 0;
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.app-container {
+    max-width: 960px;
+    margin: auto;
+    padding: var(--spacing);
+}
+
+header {
+    text-align: center;
+    padding: 20px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius);
+}
+
+.home-page h1 {
+    margin-bottom: 20px;
+}
+
+/* Components */
+.prompt-form textarea {
+    width: 100%;
+    padding: var(--spacing);
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing);
+    resize: vertical;
+}
+
+.output {
+    margin-top: 20px;
+    padding: var(--spacing);
+    background: white;
+    border: 1px solid #eee;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Buttons */
+.buttons {
+    display: flex;
+    gap: var(--spacing);
+}
+
+button {
+    padding: 10px 16px;
+    font-size: 1rem;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+    button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    button:first-child {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    button:last-child {
+        background: var(--secondary-color);
+        color: white;
+    }
+
+    button:hover:not(:disabled) {
+        filter: brightness(1.1);
+    }
+
+/* Media Queries */
+@media (max-width: 600px) {
+    .buttons {
+        flex-direction: column;
+    }
+
+    video {
+        width: 100%;
+    }
+}
