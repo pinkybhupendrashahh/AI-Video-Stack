@@ -64,7 +64,7 @@ function App() {
   const [style, setStyle] = useState("informative");
   const [lengthSec, setLengthSec] = useState(30);
   const [voice, setVoice] = useState("en-US");
-  const [backgroundVideoUrl, setBackgroundVideoUrl] = useState("");
+  const [backgroundVideoUrl, setBackgroundVideoUrl] = useState("https://pinkybhupendrashahh.github.io/AI-Video-Stack/assets/14991532_1920_1080_60fps.mp4");
   const [title, setTitle] = useState("AI Narration Demo");
 
   const [script, setScript] = useState("");
