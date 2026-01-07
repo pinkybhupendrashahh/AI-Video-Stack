@@ -8,6 +8,7 @@
     <SpaRoot>..\ai-video-stack.client</SpaRoot>
     <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:55922</SpaProxyServerUrl>
+    <UserSecretsId>7bc613d9-6be5-4c88-9810-97db4af9e26c</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

@@ -11,16 +11,24 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Configuration.AddUserSecrets<Program>();
+var token = builder.Configuration["Github:Token"];
+var ApiKey = builder.Configuration["Shotstack:ApiKey"];
 // Options
 builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection("Ollama"));
-
-builder.Services.Configure<TtsServiceOptions>(builder.Configuration.GetSection("TtsService")); 
-builder.Services.Configure<ShotstackOptions>(builder.Configuration.GetSection("Shotstack"));
-builder.Services.Configure<StaticAssetsOptions>(builder.Configuration.GetSection("StaticAssets")); 
+builder.Services.Configure<GithubOptions>(builder.Configuration.GetSection("Github"));
+builder.Services.Configure<TtsServiceOptions>(builder.Configuration.GetSection("TtsService"));
+// Then bind options
+builder.Services.Configure<ShotstackOptions>( builder.Configuration.GetSection("Shotstack") );;
+builder.Services.Configure<StaticAssetsOptions>(builder.Configuration.GetSection("StaticAssets"));
 // Http Clients
-builder.Services.AddHttpClient("Ollama");
-builder.Services.AddHttpClient("TtsService"); 
-builder.Services.AddHttpClient("Shotstack");
+builder.Services.AddHttpClient("Github");
+//builder.Services.AddHttpClient("Ollama");
+//builder.Services.AddHttpClient("TtsService"); 
+builder.Services.AddHttpClient("Shotstack" , client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(5);
+});
 builder.Services.AddHttpClient("Ollama", client =>
 {
     client.Timeout = TimeSpan.FromMinutes(5);
@@ -33,7 +41,8 @@ builder.Services.AddHttpClient("TtsService", client =>
 // Interface registrations
 builder.Services.AddScoped<IOllamaService, OllamaService>();
 builder.Services.AddScoped<ITtsService, TtsService>();
-builder.Services.AddScoped<IShotstackService, ShotstackService>(); 
+builder.Services.AddScoped<IShotstackService, ShotstackService>();
+builder.Services.AddScoped<GithubUploader>();
 // CORS for React
 builder.Services.AddCors(o => o.AddPolicy("Frontend", p => p.WithOrigins("http://localhost:5173") .AllowAnyHeader() .AllowAnyMethod()));
 

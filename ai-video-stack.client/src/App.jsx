@@ -72,6 +72,8 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [audioUrl, setAudioUrl] = useState(null);
+
+   
     
    const handleSpeech =  async () =>  
            {
@@ -104,11 +106,36 @@ function App() {
       };
 
       const data = await generateVideo(payload);
+      console.log(data);
+      setjobId(data.id);
+      setStatus(data.status);
+      const res = await checkStatus(jobId); setStatus(res.status); if (res.status === "done") { setVideoUrl(res.url); }
       setScript(data.script);
-      setVideoUrl(data.audioUrl); // later poll status for final video
+      setVideoUrl(data.videoUrl); // later poll status for final video
     } finally {
       setLoading(false);
     }
+    useEffect(() => {
+  let interval;
+  if (jobId && status !== "done") {
+    interval = setInterval(async () => {
+      try {
+        const res = await checkStatus(jobId); // ✅ await here
+        setStatus(res.status);
+
+        if (res.status === "done" && res.url) {
+          setVideoUrl(res.url);
+          clearInterval(interval);
+        }
+      } catch (err) {
+        console.error("Error checking status:", err);
+        clearInterval(interval);
+      }
+    }, 5000);
+  }
+  return () => clearInterval(interval);
+}, [jobId, status]);
+
   };
 
   return (
