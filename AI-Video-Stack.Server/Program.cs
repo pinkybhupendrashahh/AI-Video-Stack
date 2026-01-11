@@ -2,6 +2,7 @@ using AI_Video_Stack.Server.Services;
 
 using AI_Video_Stack.Server.Services.Contracts;
 using Microsoft.Extensions.Options;
+using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,13 @@ builder.Services.AddHttpClient("Github");
 //builder.Services.AddHttpClient("TtsService"); 
 builder.Services.AddHttpClient("Shotstack" , client =>
 {
+    client.BaseAddress = new Uri("https://api.shotstack.io/stage/");
+    client.DefaultRequestHeaders.Clear();
+    client.DefaultRequestHeaders.Add("x-api-key", builder.Configuration["Shotstack:ApiKey"]);
+    client.DefaultRequestHeaders.Accept.Add(
+       new MediaTypeWithQualityHeaderValue("application/json")
+   );
+
     client.Timeout = TimeSpan.FromMinutes(5);
 });
 builder.Services.AddHttpClient("Ollama", client =>
@@ -44,7 +52,6 @@ builder.Services.AddScoped<ITtsService, TtsService>();
 builder.Services.AddScoped<IShotstackService, ShotstackService>();
 builder.Services.AddScoped<GithubUploader>();
 // CORS for React
-builder.Services.AddCors(o => o.AddPolicy("Frontend", p => p.WithOrigins("http://localhost:5173") .AllowAnyHeader() .AllowAnyMethod()));
 
 // Add CORS policy
 builder.Services.AddCors(options =>

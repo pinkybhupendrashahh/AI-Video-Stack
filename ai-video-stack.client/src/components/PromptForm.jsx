@@ -84,7 +84,7 @@
 
 import React, { useState, useEffect } from "react";
 import { generateVideo, checkStatus } from "../services/api";
-
+const DOTNET_BASE = "https://localhost:5001";
 function PromptForm({
   prompt, setPrompt,
   style, setStyle,
@@ -113,20 +113,59 @@ function PromptForm({
   };
 
   // Poll Shotstack status every 5s until done
-  useEffect(() => {
-    let interval;
-    if (jobId && status !== "done") {
-      interval = setInterval(async () => {
-        const res = await checkStatus(jobId);
-        setStatus(res.status);
-        if (res.status === "done") {
-          setVideoUrl(res.url);
-          clearInterval(interval);
-        }
-      }, 5000);
+  // useEffect(() => {
+  //   let interval;
+  //   if (jobId && status !== "done") {
+  //     interval = setInterval(async () => {
+  //       const res = await checkStatus(jobId);
+  //       setStatus(res.status);
+  //       if (res.status === "done") {
+  //         setVideoUrl(res.url);
+  //         clearInterval(interval);
+  //       }
+  //     }, 5000);
+  //   }
+  //   return () => clearInterval(interval);
+  // }, [jobId, status]);
+//   useEffect(() => {
+//   if (jobId) {
+//     const interval = setInterval(async () => {
+//       const res = await fetch(`${DOTNET_BASE}/api/video/status//${jobId}`);
+//       const data = await res.json();
+//       setStatus(data.response.status);
+//       if (data.response.status === "done") {
+//         setVideoUrl(data.response.url);
+//         clearInterval(interval);
+//       }
+//       if (data.response.status === "failed") {
+//         clearInterval(interval);
+//       }
+//     }, 2000);
+//     return () => clearInterval(interval);
+//   }
+// }, [jobId]);
+useEffect(() => {
+  if (!jobId) return;
+
+  const interval = setInterval(async () => {
+    const res = await fetch(`/api/video/status/${jobId}`);
+    const data = await res.json();
+
+    setStatus(data.response.status);
+
+    if (data.response.status === "done") {
+      setVideoUrl(data.response.url);
+      clearInterval(interval);
     }
-    return () => clearInterval(interval);
-  }, [jobId, status]);
+
+    if (data.response.status === "failed") {
+      clearInterval(interval);
+    }
+  }, 3000);
+
+  return () => clearInterval(interval);
+}, [jobId]);
+
 
   useEffect(() => {
   if (videoUrl) {

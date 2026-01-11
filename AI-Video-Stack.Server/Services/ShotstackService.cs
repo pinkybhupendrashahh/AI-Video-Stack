@@ -134,20 +134,93 @@
             {
                 _http = factory.CreateClient("Shotstack");
                 _opt = opt.Value;
-                _http.BaseAddress = new Uri(_opt.BaseUrl);          // e.g. https://api.shotstack.io/stage/
-                //_http.DefaultRequestHeaders.Add("x-api-key", _opt.ApiKey);
-                 var ApiKey = config["Shotstack:ApiKey"]; // comes from user-secrets or env
-            _http.DefaultRequestHeaders.Add("x-api-key", ApiKey);
-            // _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("token", token);
-            Console.WriteLine($"Loaded Shotstack API key: {ApiKey}");
+            //    _http.BaseAddress = new Uri(_opt.BaseUrl);          // e.g. https://api.shotstack.io/stage/
+            //    //_http.DefaultRequestHeaders.Add("x-api-key", _opt.ApiKey);
+            //     var ApiKey = config["Shotstack:ApiKey"]; // comes from user-secrets or env
+            //_http.DefaultRequestHeaders.Accept.Clear();
+            //_http.DefaultRequestHeaders.Accept.Add(
+            //    new MediaTypeWithQualityHeaderValue("application/json")
+            //);
+
+            //_http.DefaultRequestHeaders.Remove("x-api-key");
+            //_http.DefaultRequestHeaders.Add("x-api-key", ApiKey);
+            //// _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("token", token);
+            //Console.WriteLine($"Loaded Shotstack API key: {ApiKey}");
         }
+
+        //public async Task<Model.RenderResponse> RenderAsync(string audioUrl, string? backgroundUrl, double lengthSec, string title)
+        //{
+        //    var clips = new List<object>
+        //    {
+        //        new { asset = new { type = "audio", src = audioUrl }, start = 0, length = lengthSec }
+        //    };
+
+        //    if (!string.IsNullOrWhiteSpace(backgroundUrl))
+        //    {
+        //        clips.Add(new { asset = new { type = "video", src = backgroundUrl }, start = 0, length = lengthSec });
+        //    }
+
+        //    clips.Add(new
+        //    {
+        //        asset = new { type = "title", text = title, style = "minimal", position = "bottom" },
+        //        start = 0,
+        //        length = Math.Min(5, lengthSec)
+        //    });
+
+        //    var payload = new
+        //    {
+        //        timeline = new { tracks = new[] { new { clips } } },
+        //        output = new { format = "mp4", resolution = "hd" }
+        //    };
+        //    // Render
+        //    //var res = await _http.PostAsJsonAsync("render", payload);
+        //    //var json = await res.Content.ReadAsStringAsync();
+        //    //var renderRes = JsonSerializer.Deserialize<StatusResponseWrapper>(json);
+
+        //    //if (renderRes?.Response == null)
+        //    //    throw new InvalidOperationException("Shotstack response or its 'Response' property was null.");
+        //    var res = await _http.PostAsJsonAsync("render", payload);
+
+        //    if (!res.IsSuccessStatusCode)
+        //    {
+        //        var errorText = await res.Content.ReadAsStringAsync();
+        //        throw new InvalidOperationException($"Shotstack API error: {res.StatusCode} - {errorText}");
+        //    }
+
+        //    var shotstackResponse = await res.Content.ReadFromJsonAsync<ShotstackResponse>();
+
+        //    if (shotstackResponse?.Response == null)
+        //    {
+        //        throw new InvalidOperationException("Shotstack response or its 'Response' property was null.");
+        //    }
+
+        //    return shotstackResponse.Response;
+
+
+        //    // Status
+        //    var res1 = await _http.GetAsync($"render/{renderRes.Response.Id}");
+        //    var json1 = await res1.Content.ReadAsStringAsync();
+        //    var statusRes = JsonSerializer.Deserialize<StatusResponseWrapper>(json1);
+
+        //    if (statusRes?.Response == null)
+        //        throw new InvalidOperationException("Shotstack status response or its 'Response' property was null.");
+
+        //    // Map StatusResponse to Model.RenderResponse
+        //    return new Model.RenderResponse
+        //    {
+        //        Id = statusRes.Response.Id,
+        //        Status = statusRes.Response.Status,
+        //        Url = statusRes.Response.Url
+        //    };
+        //}
 
         public async Task<Model.RenderResponse> RenderAsync(string audioUrl, string? backgroundUrl, double lengthSec, string title)
         {
+            // Build clips
             var clips = new List<object>
-            {
-                new { asset = new { type = "audio", src = audioUrl }, start = 0, length = lengthSec }
-            };
+    {
+        new { asset = new { type = "audio", src = audioUrl }, start = 0, length = lengthSec }
+    };
 
             if (!string.IsNullOrWhiteSpace(backgroundUrl))
             {
@@ -161,35 +234,75 @@
                 length = Math.Min(5, lengthSec)
             });
 
+            //var payload = new
+            //{
+            //    timeline = new { tracks = new[] { new { clips } } },
+            //    output = new { format = "mp4", resolution = "hd" }
+            //};
             var payload = new
             {
-                timeline = new { tracks = new[] { new { clips } } },
+                timeline = new { background = "#000000", tracks = new[] { new { clips } } },
                 output = new { format = "mp4", resolution = "hd" }
             };
-            // Render
+
+
+            // --- Render request ---
             var res = await _http.PostAsJsonAsync("render", payload);
-            var json = await res.Content.ReadAsStringAsync();
-            var renderRes = JsonSerializer.Deserialize<StatusResponseWrapper>(json);
 
+            if (!res.IsSuccessStatusCode)
+            {
+                var errorText = await res.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Shotstack API error: {res.StatusCode} - {errorText}");
+            }
+
+            var renderRes = await res.Content.ReadFromJsonAsync<StatusResponseWrapper>();
             if (renderRes?.Response == null)
-                throw new InvalidOperationException("Shotstack response or its 'Response' property was null.");
+            {
+                var raw = await res.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Shotstack render response was null. Raw: {raw}");
+            }
 
-            // Status
-            var res1 = await _http.GetAsync($"render/{renderRes.Response.Id}");
-            var json1 = await res1.Content.ReadAsStringAsync();
-            var statusRes = JsonSerializer.Deserialize<StatusResponseWrapper>(json1);
+            // --- Poll status ---
+            //var res1 = await _http.GetAsync($"render/{renderRes.Response.Id}");
+            //if (!res1.IsSuccessStatusCode)
+            //{
+            //    var errorText = await res1.Content.ReadAsStringAsync();
+            //    throw new InvalidOperationException($"Shotstack status API error: {res1.StatusCode} - {errorText}");
+            //}
 
-            if (statusRes?.Response == null)
-                throw new InvalidOperationException("Shotstack status response or its 'Response' property was null.");
+            //var statusRes = await res1.Content.ReadFromJsonAsync<StatusResponseWrapper>();
+            //if (statusRes?.Response == null)
+            //{
+            //    var raw = await res1.Content.ReadAsStringAsync();
+            //    throw new InvalidOperationException($"Shotstack status response was null. Raw: {raw}");
+            //}
 
-            // Map StatusResponse to Model.RenderResponse
+            //// --- Map to your model ---
+            //return new Model.RenderResponse
+            //{
+            //    Id = statusRes.Response.Id,
+            //    Status = statusRes.Response.Status,
+            //    Url = statusRes.Response.Url
+            //};
+            StatusResponseWrapper? statusRes = null;
+            do
+            {
+                await Task.Delay(2000); // wait 2 seconds
+                var poll = await _http.GetAsync($"render/{renderRes.Response.Id}");
+                poll.EnsureSuccessStatusCode();
+                statusRes = await poll.Content.ReadFromJsonAsync<StatusResponseWrapper>();
+            }
+            while (statusRes?.Response?.Status != "done" && statusRes?.Response?.Status != "failed");
+
             return new Model.RenderResponse
             {
                 Id = statusRes.Response.Id,
                 Status = statusRes.Response.Status,
                 Url = statusRes.Response.Url
             };
+
         }
+
 
         public async Task<Model.RenderStatus> GetStatusAsync(string id)
             {

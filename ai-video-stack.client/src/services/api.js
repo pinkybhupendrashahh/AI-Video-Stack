@@ -49,7 +49,7 @@ export async function generateSpeech(topic) {
 }
 
 export async function generateVideo(prompt) {
-  const res = await fetch(`${DOTNET_BASE}/api/video/render`, {
+  const res = await fetch('/api/video/render', {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -65,7 +65,17 @@ export async function generateVideo(prompt) {
   return res.json(); // backend returns { id: "...", status: "queued" }
 }
 
-export async function checkStatus(jobId) {
-  const res = await fetch(`${DOTNET_BASE}/api/video/status/${jobId}`);
-  return res.json(); // backend returns { id: "...", status: "done", url: "..." }
-}
+// export async function checkStatus(jobId) {
+//   const res = await fetch(`${DOTNET_BASE}/api/video/status/${jobId}`);
+//   return res.json(); // backend returns { id: "...", status: "done", url: "..." }
+// }
+
+export  const checkStatus = async (id) => {
+  const res = await fetch(`$/api/video/status/${id}`);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text); // will show backend error
+  }
+  return res.json(); // only parse if valid JSON
+};
+

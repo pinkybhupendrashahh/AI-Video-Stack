@@ -4,17 +4,18 @@ from pathlib import Path
 import uuid
 import os
 import pyttsx3
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
 # Prefer environment variable; fallback to relative path
-ASSETS_DIR = Path(os.getenv("ASSETS_DIR", "C:/Users/Samsung/source/repos/AI-Video-Stack/AI-Video-Stack.Server/wwwroot/Assets"))
+ASSETS_DIR = Path(os.getenv("ASSETS_DIR","C:/Users/Samsung/source/repos/AI-Video-Stack/AI-Video-Stack.Server"))
 ASSETS_DIR.mkdir(parents=True, exist_ok=True)
 
 class TtsRequest(BaseModel):
     text: str
-    voice: str | None = None  # optional: system voice id
-    rate: int | None = None   # optional: words per minute (default ~200)
+    voice: str | None = None   # optional: system voice id
+    rate: int | None = None    # optional: words per minute (default ~200)
     volume: float | None = None  # optional: 0.0 to 1.0
 
 @app.get("/")
@@ -46,6 +47,9 @@ def tts(req: TtsRequest):
 
     return {
         "fileName": file_name,
-        "publicUrl": f"/assets/{file_name}",
+        "publicUrl": f"{file_name}",
         "durationSec": 0.0
     }
+
+# Mount static files so generated audio can be served
+app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
